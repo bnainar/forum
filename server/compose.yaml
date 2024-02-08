@@ -8,8 +8,9 @@ services:
       - "host.docker.internal:host-gateway"
     depends_on:
       - db
-      # - elasticsearch
-      # - kibana
+      - migration
+      - cache
+      - elasticsearch
   migration:
     build: .
     command: npx sequelize-cli db:migrate
@@ -17,6 +18,17 @@ services:
       - .:/usr/src/app
     depends_on:
       - db
+  cache:
+    image: redis
+    ports:
+      - 6379:6379
+    volumes:
+      - cache:/data
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 1s
+      timeout: 2s
+      retries: 10
   db:
     image: postgres
     ports:
@@ -26,28 +38,31 @@ services:
     volumes:
       - /var/lib/postgresql/data
 
-#   elasticsearch:
-#     image: docker.elastic.co/elasticsearch/elasticsearch:6.7.2
-#     container_name: elasticsearch
-#     ports:
-#       - 9200:9200
-#       - 9300:9300
-#     volumes:
-#       - elasticsearch-data:/usr/share/elasticsearch/data
-#     environment:
-#       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
-#       - discovery.type=single-node
-#       - xpack.security.enabled=false
-#       - bootstrap.memory_lock=true
-#     restart: unless-stopped
-#     depends_on:
-#       - db
-#   kibana:
-#     image: docker.elastic.co/kibana/kibana-oss:6.7.2
-#     container_name: kibana
-#     ports:
-#      - 5601:5601
-#     depends_on:
-#       - db
-# volumes:
-#   elasticsearch-data:
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:6.7.2
+    container_name: elasticsearch
+    ports:
+      - 9200:9200
+      - 9300:9300
+    volumes:
+      - elasticsearch-data:/usr/share/elasticsearch/data
+    environment:
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - bootstrap.memory_lock=true
+    restart: unless-stopped
+    depends_on:
+      - db
+  kibana:
+    image: docker.elastic.co/kibana/kibana-oss:6.7.2
+    container_name: kibana
+    ports:
+      - 5601:5601
+    depends_on:
+      - db
+      - elasticsearch
+volumes:
+  cache:
+    driver: local
+  elasticsearch-data:

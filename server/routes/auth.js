@@ -1,28 +1,24 @@
 const Joi = require("joi");
-const bcrypt = require("bcrypt");
-const models = require("../models");
-const uuid = require("uuid").v4;
+const controllers = require("../controllers");
 const authRoute = [
   {
-    path: "/auth/login",
-    method: "POST",
+    path: "/auth/me",
+    method: "GET",
     config: {
       handler: async (req, reply) => {
-        const { username, password } = req.payload;
-        const user = await models.User.findOne({ where: { username } });
-        if (!user) {
-          return reply().code(400);
-        }
-        try {
-          const hash = await bcrypt.compare(password, user.passwordhash);
-          if (hash) {
-            return reply().state("session", uuid());
-          } else throw new Error("no match");
-        } catch (e) {
-          console.log(e);
-          reply("wut").code(400);
-        }
+        console.log("req", req.auth.credentials);
+        reply(req.auth.credentials).code(201);
       },
+      auth: {
+        strategy: "cookie-auth",
+      },
+    },
+  },
+  {
+    path: "/login",
+    method: "POST",
+    config: {
+      handler: controllers.auth.login,
       validate: {
         payload: Joi.object({
           username: Joi.string().min(4),
@@ -33,22 +29,10 @@ const authRoute = [
   },
 
   {
-    path: "/auth/signup",
+    path: "/signup",
     method: "POST",
     config: {
-      handler: async (req, reply) => {
-        const { username, password } = req.payload;
-        let user = await models.User.findOne({ where: { username } });
-        if (user) {
-          return reply("Username already exists").code(400);
-        }
-        const passwordhash = await bcrypt.hash(password, 10);
-        user = await models.User.create({
-          username,
-          passwordhash,
-        });
-        reply(user);
-      },
+      handler: controllers.auth.signup,
       validate: {
         payload: Joi.object({
           username: Joi.string().min(4),
@@ -61,7 +45,9 @@ const authRoute = [
   {
     path: "/auth/logout",
     method: "GET",
-    handler: async (req, reply) => reply().state("session", ""),
+    config: {
+      handler: controllers.auth.logout,
+    },
   },
 ];
 module.exports = authRoute;
