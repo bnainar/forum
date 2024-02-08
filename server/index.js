@@ -12,13 +12,6 @@ server.start(async (err) => {
   if (err) throw err;
   console.log("Server running");
   try {
-    const flatRoutes = [];
-    for (const key in route) {
-      if (route[key].length > 0) {
-        const routes = route[key];
-        flatRoutes.push(...routes);
-      }
-    }
     server.auth.scheme("cookie-scheme", () => {
       return {
         authenticate: async (req, reply) => {
@@ -35,10 +28,18 @@ server.start(async (err) => {
       };
     });
     server.auth.strategy("cookie-auth", "cookie-scheme");
+    const flatRoutes = [];
+    for (const key in route) {
+      if (route[key].length > 0) {
+        const routes = route[key];
+        flatRoutes.push(...routes);
+      }
+    }
     server.route(flatRoutes);
 
     await db.sequelize.authenticate();
-    await db.sequelize.sync();
+    await db.sequelize.sync({ force: true });
+    await utils.seed();
     console.log("DB connected successfully");
   } catch (e) {
     console.log("DB conn failed", e);
@@ -47,11 +48,7 @@ server.start(async (err) => {
 
   server.on("response", function (req) {
     console.log(
-      req.method.toUpperCase() +
-        " " +
-        req.path +
-        " → " +
-        req.response.statusCode
+      `${req.method.toUpperCase()} ${req.path} → ${req.response.statusCode}`
     );
   });
 });

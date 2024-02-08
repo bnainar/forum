@@ -4,7 +4,14 @@ module.exports = [
   {
     path: "/posts",
     method: "GET",
-    handler: controllers.post.getAllPosts,
+    config: {
+      handler: controllers.post.getAllPosts,
+      validate: {
+        query: Joi.object({
+          page: Joi.number().default(0),
+        }),
+      },
+    },
   },
 
   {

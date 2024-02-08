@@ -2,7 +2,6 @@ const models = require("../models");
 const utils = require("../utils");
 const createPost = async (req, h) => {
   try {
-    console.log(req.payload);
     const res = await models.Post.create({
       ...req.payload,
       authorId: req.auth.credentials.userId,
@@ -31,7 +30,6 @@ const editPost = async (req, reply) => {
   }
   console.log(post.authorId, req.auth.credentials.userId);
   if (post.authorId != req.auth.credentials.userId) return reply().code(403);
-  console.log("hi from edit");
   post.title = req.payload.title;
   post.content = req.payload.content;
   await post.save();
@@ -39,6 +37,7 @@ const editPost = async (req, reply) => {
 };
 
 const getPostById = async (req, reply) => {
+  console.time("getPostTime");
   const post = await models.Post.findByPk(req.params.id);
   if (!post) {
     return reply().code(404);
@@ -52,7 +51,7 @@ const getPostById = async (req, reply) => {
         [models.sequelize.fn("COUNT", models.sequelize.col("id")), "replies"],
       ],
     });
-    return res[0].dataValues;
+    return +res[0].dataValues.replies;
   });
 
   const votes = await utils.getFromCache(post.id + ":votes", async () => {
@@ -67,7 +66,7 @@ const getPostById = async (req, reply) => {
         ],
       ],
     });
-    return res[0].dataValues;
+    return +res[0].dataValues.votes;
   });
   const upvoted = await models.PostVote.findOne({
     where: {
@@ -75,6 +74,8 @@ const getPostById = async (req, reply) => {
       user_id: req.auth.credentials.userId,
     },
   });
+  console.timeEnd("getPostTime");
+
   reply({
     post,
     replies,
@@ -83,9 +84,13 @@ const getPostById = async (req, reply) => {
   });
 };
 
-const getAllPosts = async (_, reply) => {
+const getAllPosts = async (req, reply) => {
+  const limit = 10;
   try {
-    const res = await models.Post.findAll();
+    const res = await models.Post.findAll({
+      limit,
+      offset: limit * req.query.page,
+    });
     reply(res);
   } catch (e) {
     console.log("all posts failed", e);

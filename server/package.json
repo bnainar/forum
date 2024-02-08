@@ -21,5 +21,8 @@
     "require-directory": "^2.1.1",
     "sequelize": "^5.21.3",
     "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "@faker-js/faker": "^8.4.0"
   }
 }
