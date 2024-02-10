@@ -20,32 +20,30 @@ function App() {
     <>
       <NavBar />
       <div>
-        <p>
-          <Button
-            onClick={async () => {
-              const res = await axios.get("/auth/me", {
-                withCredentials: true,
-              });
-              console.log(res);
-            }}
-          >
-            Test auth
-          </Button>
-          {ps.map((post: any) => (
-            <Link key={post.id} to={"/posts/" + post.id}>
-              <Card>
-                <CardContent>
-                  <Typography variant="h4" gutterBottom>
-                    {post.title}
-                  </Typography>
-                  <Typography variant="body1" gutterBottom>
-                    {post.content}
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Link>
-          ))}
-        </p>
+        <Button
+          onClick={async () => {
+            const res = await axios.get("/auth/me", {
+              withCredentials: true,
+            });
+            console.log(res);
+          }}
+        >
+          Test auth
+        </Button>
+        {ps.map((post: any) => (
+          <Link key={post.id} to={"/posts/" + post.id}>
+            <Card>
+              <CardContent>
+                <Typography variant="h4" gutterBottom>
+                  {post.title}
+                </Typography>
+                <Typography variant="body1" gutterBottom>
+                  {post.content}
+                </Typography>
+              </CardContent>
+            </Card>
+          </Link>
+        ))}
       </div>
     </>
   );

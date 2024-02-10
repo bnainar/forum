@@ -6,7 +6,7 @@ FROM node
 # ENV NODE_ENV production
 USER root
 
-WORKDIR /usr/src/app/client
+WORKDIR /usr/src/app
 COPY package.json .
 RUN npm i
 # RUN ln -s "$(npm root -g)" node_modules
@@ -14,9 +14,8 @@ RUN npm i
 
 # Copy the rest of the source files into the image.
 COPY . .
-# RUN npm install --include=dev
-# Expose the port that the application listens on.
 EXPOSE 5173
 # Run the application.
-RUN npm run build
-CMD npx vite preview --port 5173
+# RUN npm run build
+# CMD npx vite preview --port 5173
+CMD [ "npm", "run", "dev" ]
