@@ -2,7 +2,7 @@ const Joi = require("joi");
 const controllers = require("../controllers");
 module.exports = [
   {
-    path: "/vote",
+    path: "/api/vote",
     method: "POST",
     config: {
       handler: controllers.vote.upvote,

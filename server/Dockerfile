@@ -1,4 +1,3 @@
-
 # https://docs.docker.com/go/dockerfile-reference/
 
 FROM node:14
@@ -6,7 +5,7 @@ FROM node:14
 # ENV NODE_ENV production
 
 
-WORKDIR /usr/src/app
+WORKDIR /usr/src/app/server
 
 # Download dependencies as a separate step to take advantage of Docker's caching.
 # Leverage a cache mount to /root/.npm to speed up subsequent builds.

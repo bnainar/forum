@@ -13,6 +13,7 @@
     "@elastic/elasticsearch": "^7.17.11",
     "bcrypt": "^5.1.1",
     "hapi": "^16.1.0",
+    "hapi-cors": "^1.0.3",
     "ioredis": "^5.3.2",
     "joi": "^10.2.2",
     "pg": "^8.11.3",

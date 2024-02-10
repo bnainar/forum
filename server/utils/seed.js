@@ -13,7 +13,7 @@ const seed = async () => {
       authorId: 1,
     });
   }
-  for (let i = 1; i < 2000; i++) {
+  for (let i = 1; i < 5; i++) {
     await models.Reply.create({
       content: faker.string.alpha(10),
       authorId: 1,

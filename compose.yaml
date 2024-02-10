@@ -1,0 +1,91 @@
+services:
+  haproxy:
+    image: haproxy:latest
+    ports:
+      - "80:80"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+    restart: always
+    depends_on:
+      - nodejs_server
+
+  react_frontend:
+    build:
+      context: ./client
+    ports:
+      - 5173:5173
+    # volumes:
+    #   - ./client:/usr/src/app/client
+    #   - /usr/src/app/client/node_modules
+    depends_on:
+      - nodejs_server
+
+  nodejs_server:
+    build:
+      context: ./server
+    ports:
+      - 3000:3000
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      - db
+      - migration
+      - cache
+      # - elasticsearch
+
+  migration:
+    build: ./server
+    command: npx sequelize-cli db:migrate
+    depends_on:
+      - db
+
+  cache:
+    image: redis
+    ports:
+      - 6379:6379
+    volumes:
+      - cache:/data
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 1s
+      timeout: 2s
+      retries: 10
+
+  db:
+    image: postgres
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_PASSWORD=mypass
+    volumes:
+      - /var/lib/postgresql/data
+  # elasticsearch:
+  #   image: docker.elastic.co/elasticsearch/elasticsearch:6.7.2
+  #   container_name: elasticsearch
+  #   ports:
+  #     - 9200:9200
+  #     - 9300:9300
+  #   volumes:
+  #     - elasticsearch-data:/usr/share/elasticsearch/data
+  #   environment:
+  #     - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+  #     - discovery.type=single-node
+  #     - xpack.security.enabled=false
+  #     - bootstrap.memory_lock=true
+  #   restart: unless-stopped
+  #   depends_on:
+  #     - db
+  # kibana:
+  #   image: docker.elastic.co/kibana/kibana-oss:6.7.2
+  #   container_name: kibana
+  #   ports:
+  #     - 5601:5601
+  #   depends_on:
+  #     - db
+  #     - elasticsearch
+volumes:
+  cache:
+    driver: local
+  # elasticsearch-data:

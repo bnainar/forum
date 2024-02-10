@@ -2,12 +2,12 @@ const Joi = require("joi");
 const controllers = require("../controllers");
 const authRoute = [
   {
-    path: "/auth/me",
+    path: "/api/auth/me",
     method: "GET",
     config: {
       handler: async (req, reply) => {
         console.log("req", req.auth.credentials);
-        reply(req.auth.credentials).code(201);
+        reply(req.auth.credentials).header("Access-Control-Allow-Origin", "*");
       },
       auth: {
         strategy: "cookie-auth",
@@ -15,7 +15,7 @@ const authRoute = [
     },
   },
   {
-    path: "/login",
+    path: "/api/login",
     method: "POST",
     config: {
       handler: controllers.auth.login,
@@ -29,7 +29,7 @@ const authRoute = [
   },
 
   {
-    path: "/signup",
+    path: "/api/signup",
     method: "POST",
     config: {
       handler: controllers.auth.signup,
@@ -43,7 +43,7 @@ const authRoute = [
   },
 
   {
-    path: "/auth/logout",
+    path: "/api/auth/logout",
     method: "GET",
     config: {
       handler: controllers.auth.logout,

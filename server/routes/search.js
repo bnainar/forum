@@ -1,7 +1,7 @@
 const elastic = require("../utils/elastic");
 module.exports = [
   {
-    path: "/search/{term}",
+    path: "/api/search/{term}",
     method: "GET",
     handler: async (req, reply) => {
       const el = elastic();

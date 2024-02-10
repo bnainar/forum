@@ -14,7 +14,6 @@ module.exports = async (myKey, missCallback, ms = 60) => {
   try {
     console.log(`cache miss ${myKey}, executing callback`);
     let sqlres = await missCallback();
-    console.log({ sqlres });
     await redisClient.set(myKey, sqlres, { EX: ms });
     return sqlres;
   } catch (e) {

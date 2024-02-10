@@ -13,11 +13,10 @@ const login = async (req, reply) => {
     try {
       const hash = await bcrypt.compare(password, user.passwordhash);
       if (hash) {
-        console.log(utils);
         const cache = await utils.redis();
         const sessionKey = uuid();
-        await cache.set(sessionKey, user.id);
-        return reply().state("session", sessionKey);
+        await cache.set(sessionKey, user.id, { EX: 60 * 5 });
+        return reply(sessionKey).state("session", sessionKey);
       } else throw new Error("no match");
     } catch (e) {
       console.log("creating session failed", e);

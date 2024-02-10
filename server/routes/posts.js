@@ -2,7 +2,7 @@ const Joi = require("joi");
 const controllers = require("../controllers");
 module.exports = [
   {
-    path: "/posts",
+    path: "/api/posts",
     method: "GET",
     config: {
       handler: controllers.post.getAllPosts,
@@ -15,7 +15,7 @@ module.exports = [
   },
 
   {
-    path: "/posts/{id}",
+    path: "/api/posts/{id}",
     method: "GET",
     config: {
       handler: controllers.post.getPostById,
@@ -26,7 +26,7 @@ module.exports = [
   },
 
   {
-    path: "/posts/{id}",
+    path: "/api/posts/{id}",
     method: "PATCH",
     config: {
       handler: controllers.post.editPost,
@@ -42,7 +42,7 @@ module.exports = [
     },
   },
   {
-    path: "/posts/{id}",
+    path: "/api/posts/{id}",
     method: "DELETE",
     config: {
       handler: controllers.post.deletePost,
@@ -52,7 +52,7 @@ module.exports = [
     },
   },
   {
-    path: "/posts",
+    path: "/api/posts",
     method: "POST",
     config: {
       handler: controllers.post.createPost,

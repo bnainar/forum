@@ -34,7 +34,6 @@ module.exports = (sequelize, DataTypes) => {
     }
   );
   Post.afterCreate("create elastic", (post, _) => {
-    console.log(post);
     const el = elastic();
     el.index({
       index: "titleindex",

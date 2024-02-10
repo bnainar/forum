@@ -17,7 +17,7 @@ const upvote = async (req, reply) => {
     }
     reply(res);
   } catch (error) {
-    reply().code(404);
+    reply().code(200);
   }
 };
 

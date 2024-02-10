@@ -7,7 +7,6 @@ server.connection({
   host: "0.0.0.0",
   port: 3000,
 });
-
 server.start(async (err) => {
   if (err) throw err;
   console.log("Server running");
@@ -17,6 +16,8 @@ server.start(async (err) => {
         authenticate: async (req, reply) => {
           try {
             const cache = await utils.redis();
+            console.log(req.state);
+            if (!req.state?.session) return reply().code(401);
             const userId = await cache.get(req.state.session);
             if (!userId) return reply().code(401);
             reply.continue({ credentials: { userId } });
