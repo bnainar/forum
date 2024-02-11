@@ -1,15 +1,15 @@
 services:
-  haproxy:
-    image: haproxy:latest
+  caddy:
+    image: caddy:latest
     ports:
-      - "80:80"
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+      - 80:80
+      - 443:443
     volumes:
-      - ./haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
     restart: always
     depends_on:
       - nodejs_server
+      - react_frontend
 
   react_frontend:
     build:
@@ -18,6 +18,7 @@ services:
       - 5173:5173
     volumes:
       - ./client/src:/usr/src/app/src
+      - /usr/src/app/node_modules
     depends_on:
       - nodejs_server
 
@@ -32,7 +33,7 @@ services:
       - db
       - migration
       - cache
-      # - elasticsearch
+      - elasticsearch
 
   migration:
     build: ./server
@@ -51,6 +52,8 @@ services:
       interval: 1s
       timeout: 2s
       retries: 10
+    depends_on:
+      - db
 
   db:
     image: postgres
@@ -60,31 +63,45 @@ services:
       - POSTGRES_PASSWORD=mypass
     volumes:
       - /var/lib/postgresql/data
-  # elasticsearch:
-  #   image: docker.elastic.co/elasticsearch/elasticsearch:6.7.2
-  #   container_name: elasticsearch
-  #   ports:
-  #     - 9200:9200
-  #     - 9300:9300
-  #   volumes:
-  #     - elasticsearch-data:/usr/share/elasticsearch/data
-  #   environment:
-  #     - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
-  #     - discovery.type=single-node
-  #     - xpack.security.enabled=false
-  #     - bootstrap.memory_lock=true
-  #   restart: unless-stopped
-  #   depends_on:
-  #     - db
-  # kibana:
-  #   image: docker.elastic.co/kibana/kibana-oss:6.7.2
-  #   container_name: kibana
-  #   ports:
-  #     - 5601:5601
-  #   depends_on:
-  #     - db
-  #     - elasticsearch
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:6.7.2
+    container_name: elasticsearch
+    ports:
+      - 9200:9200
+      - 9300:9300
+    volumes:
+      - elasticsearch-data:/usr/share/elasticsearch/data
+    environment:
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - bootstrap.memory_lock=true
+    restart: unless-stopped
+    depends_on:
+      - db
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "curl localhost:9200/_cluster/health || exit 1"
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana-oss:6.7.2
+    container_name: kibana
+    ports:
+      - 5601:5601
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    logging:
+      driver: none
+
 volumes:
   cache:
     driver: local
-  # elasticsearch-data:
+  elasticsearch-data:

@@ -1,6 +1,5 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
-import NavBar from "./ui/NavBar";
 import ArrowDropUpIcon from "@mui/icons-material/ArrowDropUp";
 import { useParams } from "react-router-dom";
 import { IconButton, Stack, Typography } from "@mui/material";
@@ -14,17 +13,11 @@ export function PostPage() {
       console.log(res.data);
     });
   }, []);
-  if (!post)
-    return (
-      <>
-        <NavBar /> <p>Loading...</p>
-      </>
-    );
+  if (!post) return <p>Loading...</p>;
   return (
     <>
-      <NavBar />
-      <Stack direction="row" spacing={2}>
-        <Stack>
+      <Stack direction="row" spacing={2} alignItems="flex-start">
+        <Stack justifyContent="center" alignItems="center" spacing="0">
           <IconButton
             aria-label="upvote"
             disabled={post.upvoted}
@@ -32,7 +25,7 @@ export function PostPage() {
               axios.post("/vote?post_id=" + post.post.id).then(console.log);
               setPost((p: any) => ({
                 ...p,
-                votes: p.votes + 1,
+                votes: +p.votes + 1,
                 upvoted: true,
               }));
             }}
@@ -41,14 +34,17 @@ export function PostPage() {
           </IconButton>
           <p>{post.votes}</p>
         </Stack>
-        <Typography variant="h2" gutterBottom>
-          {post.post.title}
-        </Typography>
+        <Stack direction="column">
+          <Typography variant="h2" gutterBottom>
+            {post.post.title}
+          </Typography>
+
+          <Typography variant="body1" gutterBottom>
+            {post.post.content}
+          </Typography>
+          <p>{post.replies} replies</p>
+        </Stack>
       </Stack>
-      <Typography variant="body1" gutterBottom>
-        {post.post.content}
-      </Typography>
-      <p>{post.replies} replies</p>
     </>
   );
 }
