@@ -6,6 +6,7 @@ import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogTitle from "@mui/material/DialogTitle";
 import axios from "axios";
+import { toast } from "react-hot-toast";
 
 export default function LoginModal() {
   const [open, setOpen] = React.useState(false);
@@ -33,9 +34,8 @@ export default function LoginModal() {
             const formData = new FormData(event.currentTarget);
             const formJson = Object.fromEntries((formData as any).entries());
             console.log(formJson);
-            const res = await axios.post("/login", formJson);
-            document.cookie =
-              "session=" + res.data + "; Path=/; Secure; HttpOnly;";
+            await axios.post("/login", formJson);
+            toast("Logged in!");
             handleClose();
           },
         }}
