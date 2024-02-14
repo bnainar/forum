@@ -1,4 +1,13 @@
 services:
+  portainer:
+    image: portainer/portainer-ce:latest
+    ports:
+      - 9443:9443
+    volumes:
+      - portainer-vol:/data
+      - /var/run/docker.sock:/var/run/docker.sock
+    restart: unless-stopped
+
   caddy:
     image: caddy:latest
     ports:
@@ -27,13 +36,20 @@ services:
       context: ./server
     ports:
       - 3000:3000
+    volumes:
+      - ./server:/usr/src/app
+      - /usr/src/app/node_modules
     extra_hosts:
       - "host.docker.internal:host-gateway"
     depends_on:
-      - db
-      - migration
-      - cache
-      - elasticsearch
+      db:
+        condition: service_started
+      migration:
+        condition: service_started
+      cache:
+        condition: service_started
+      elasticsearch:
+        condition: service_healthy
 
   migration:
     build: ./server
@@ -84,7 +100,7 @@ services:
       test:
         [
           "CMD-SHELL",
-          "curl localhost:9200/_cluster/health || exit 1"
+          "curl elasticsearch:9200/_cluster/health || exit 1"
         ]
       interval: 30s
       timeout: 10s
@@ -102,6 +118,7 @@ services:
       driver: none
 
 volumes:
+  portainer-vol:
   cache:
     driver: local
   elasticsearch-data:

@@ -35,7 +35,7 @@ export default function LoginModal() {
             const formJson = Object.fromEntries((formData as any).entries());
             console.log(formJson);
             await axios.post("/login", formJson);
-            toast("Logged in!");
+            toast.success("Welcome back, " + formJson.username);
             handleClose();
           },
         }}

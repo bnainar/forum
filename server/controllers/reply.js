@@ -1,11 +1,21 @@
 const models = require("../models");
+const utils = require("../utils");
 const createReply = async (req, h) => {
   try {
-    console.log(req.payload);
+    console.log({ what: req.payload });
     const res = await models.Reply.create({
       ...req.payload,
       authorId: req.auth.credentials.userId,
     });
+    try {
+      const redis = await utils.redis();
+      const redisVal = await redis.get("replies:" + req.payload.parentId);
+      if (redisVal) {
+        await redis.incr("replies:" + req.payload.parentId);
+      }
+    } catch (e) {
+      console.log("redis vote incr fail", e);
+    }
     return h(res).code(201);
   } catch (error) {
     console.log(error);
@@ -46,8 +56,15 @@ const getReplyById = async (req, reply) => {
   reply(replyObj);
 };
 
+const getRepliesByPostId = async (req, reply) => {
+  const replies = await models.Reply.findAll({
+    where: { parentId: req.params.postId },
+  });
+  reply(replies);
+};
 module.exports = {
   getReplyById,
+  getRepliesByPostId,
   createReply,
   editReply,
   deleteReply,

@@ -5,6 +5,7 @@ module.exports = (sequelize, DataTypes) => {
   class Post extends Model {
     static associate(models) {
       this.belongsTo(models.User, {
+        as: "author",
         foreignKey: {
           name: "authorId",
           allowNull: false,
@@ -27,6 +28,10 @@ module.exports = (sequelize, DataTypes) => {
     {
       title: DataTypes.STRING,
       content: DataTypes.STRING,
+      vote_count: {
+        type: DataTypes.INTEGER,
+        defaultValue: 0,
+      },
     },
     {
       sequelize,
@@ -41,6 +46,7 @@ module.exports = (sequelize, DataTypes) => {
       type: "_doc",
       body: { ...post.dataValues, id: undefined },
     });
+    console.log("Get Elastiked");
   });
   Post.afterDestroy("destroy in elastic", (post, _) => {
     const el = elastic();
@@ -50,6 +56,7 @@ module.exports = (sequelize, DataTypes) => {
     });
   });
   Post.afterUpdate("update @elastic", async (post, _) => {
+    return;
     const el = elastic();
     console.log("update el");
 

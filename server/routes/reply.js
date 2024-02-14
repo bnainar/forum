@@ -6,7 +6,11 @@ module.exports = [
     method: "GET",
     handler: controllers.reply.getReplyById,
   },
-
+  {
+    path: "/api/reply/post/{postId}",
+    method: "GET",
+    handler: controllers.reply.getRepliesByPostId,
+  },
   {
     path: "/api/reply/{id}",
     method: "PATCH",

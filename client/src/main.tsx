@@ -3,12 +3,13 @@ import ReactDOM from "react-dom/client";
 import App from "./App.tsx";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import "./index.css";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
-import { PostPage } from "./components/PostPage.tsx";
+import { PostPage } from "./components/post/PostPage.tsx";
 import { Root } from "./components/Root.tsx";
-import { Toaster } from "react-hot-toast";
+import toast, { Toaster } from "react-hot-toast";
+import { SearchPage } from "./components/SearchPage.tsx";
 
 const darkTheme = createTheme({
   palette: {
@@ -16,6 +17,12 @@ const darkTheme = createTheme({
   },
 });
 axios.defaults.baseURL = "https://localhost/api";
+axios.interceptors.response.use(
+  (res) => res,
+  (err: AxiosError) => {
+    if (err?.response?.status === 401) toast.error("You are not logged in!");
+  }
+);
 const router = createBrowserRouter([
   {
     element: <Root />,
@@ -33,6 +40,7 @@ const router = createBrowserRouter([
         path: "/posts/:postId",
         element: <PostPage />,
       },
+      { path: "/search", element: <SearchPage /> },
     ],
   },
 ]);

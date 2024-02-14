@@ -8,9 +8,9 @@ const upvote = async (req, reply) => {
     });
     try {
       const redis = await utils.redis();
-      const redisVal = await redis.get(req.query.post_id + ":votes");
+      const redisVal = await redis.get("votes:" + req.query.post_id);
       if (redisVal) {
-        await redis.incr(req.query.post_id + ":votes");
+        await redis.incr("votes:" + req.query.post_id);
       }
     } catch (e) {
       console.log("redis vote incr fail", e);

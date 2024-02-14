@@ -37,12 +37,16 @@ const editPost = async (req, reply) => {
 };
 
 const getPostById = async (req, reply) => {
-  console.time("getPostTime");
-  const post = await models.Post.findByPk(req.params.id);
+  const post = await models.Post.findByPk(req.params.id, {
+    include: {
+      model: models.User,
+      as: "author",
+    },
+  });
   if (!post) {
     return reply().code(404);
   }
-  const replies = await utils.getFromCache(post.id + ":replies", async () => {
+  const replies = await utils.getFromCache("replies:" + post.id, async () => {
     const res = await models.Reply.findAll({
       where: {
         parentId: post.id,
@@ -54,7 +58,7 @@ const getPostById = async (req, reply) => {
     return +res[0].dataValues.replies;
   });
 
-  const votes = await utils.getFromCache(post.id + ":votes", async () => {
+  const votes = await utils.getFromCache("votes:" + post.id, async () => {
     const res = await models.PostVote.findAll({
       where: {
         post_id: post.id,
@@ -74,7 +78,6 @@ const getPostById = async (req, reply) => {
       user_id: req.auth.credentials.userId,
     },
   });
-  console.timeEnd("getPostTime");
 
   reply({
     post,
