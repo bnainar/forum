@@ -19,8 +19,10 @@ export function PostListItem({ postId }: { postId: number }) {
     axios
       .get("/posts/" + postId, { withCredentials: true })
       .then((res: any) => {
-        setPost(res.data);
-        console.log("individual post", res.data);
+        if (res?.data) {
+          setPost(res.data);
+          console.log("individual post", res.data);
+        }
       });
   }, []);
   if (post)

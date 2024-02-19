@@ -7,7 +7,7 @@ const upvote = async (req, reply) => {
       user_id: req.auth.credentials.userId,
     });
     try {
-      const redis = await utils.redis();
+      const redis = utils.redis();
       const redisVal = await redis.get("votes:" + req.query.post_id);
       if (redisVal) {
         await redis.incr("votes:" + req.query.post_id);

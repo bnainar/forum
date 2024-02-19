@@ -34,8 +34,13 @@ export default function LoginModal() {
             const formData = new FormData(event.currentTarget);
             const formJson = Object.fromEntries((formData as any).entries());
             console.log(formJson);
-            await axios.post("/login", formJson);
-            toast.success("Welcome back, " + formJson.username);
+            try {
+              await axios.post("/login", formJson);
+              toast.success("Welcome back, " + formJson.username);
+            } catch (error) {
+              console.log("Login failed", error);
+              toast.error("Login failed");
+            }
             handleClose();
           },
         }}

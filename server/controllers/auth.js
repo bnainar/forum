@@ -13,9 +13,9 @@ const login = async (req, reply) => {
     try {
       const hash = await bcrypt.compare(password, user.passwordhash);
       if (hash) {
-        const cache = await utils.redis();
+        const cache = utils.redis();
         const sessionKey = uuid();
-        await cache.set(sessionKey, user.id, { EX: 60 * 5 });
+        await cache.setex(sessionKey, 60 * 5, user.id);
         return reply(sessionKey).state("session", sessionKey);
       } else throw new Error("no match");
     } catch (e) {

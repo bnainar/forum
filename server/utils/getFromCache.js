@@ -1,7 +1,7 @@
 const redis = require("./redis");
 
 module.exports = async (myKey, missCallback, ms = 60) => {
-  const redisClient = await redis();
+  const redisClient = redis();
   try {
     let redisVal = await redisClient.get(myKey);
     if (redisVal) {
@@ -14,7 +14,7 @@ module.exports = async (myKey, missCallback, ms = 60) => {
   try {
     console.log(`cache miss ${myKey}, executing callback`);
     let sqlres = await missCallback();
-    await redisClient.set(myKey, sqlres, { EX: ms });
+    await redisClient.setex(myKey, ms, sqlres);
     return sqlres;
   } catch (e) {
     console.log("Cache set failed", e);

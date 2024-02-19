@@ -1,6 +1,6 @@
 services:
   portainer:
-    image: portainer/portainer-ce:latest
+    image: portainer/portainer-ce
     ports:
       - 9443:9443
     volumes:
@@ -9,7 +9,7 @@ services:
     restart: unless-stopped
 
   caddy:
-    image: caddy:latest
+    image: caddy
     ports:
       - 80:80
       - 443:443
@@ -39,8 +39,6 @@ services:
     volumes:
       - ./server:/usr/src/app
       - /usr/src/app/node_modules
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
     depends_on:
       db:
         condition: service_started

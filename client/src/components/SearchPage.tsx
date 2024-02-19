@@ -7,6 +7,10 @@ export function SearchPage() {
   const { search } = useLocation();
   const r = new URLSearchParams(search);
   const searchTerm = r.get("q");
+  const page = r.get("page") ?? 0;
+
+  console.log({ page });
+
   const [searchRes, setSearchRes] = useState<any>();
   useEffect(() => {
     axios.get("/search?q=" + searchTerm).then((res: any) => {

@@ -3,6 +3,7 @@ const redis = require("../utils/redis");
 const models = require("../models");
 const voteQ = new Bull("voteQ", { redis: { port: 6379, host: "cache" } });
 voteQ.process(async () => {
+  return;
   const cache = await redis();
   const iteratorParams = {
     MATCH: "votes:*",
@@ -23,6 +24,6 @@ voteQ.process(async () => {
   }
   return;
 });
-const seedQ = () => voteQ.add({ as: "as" }, { repeat: { cron: "* * * * *" } });
+// const seedQ = () => voteQ.add({ as: "as" }, { repeat: { cron: "* * * * *" } });
 
-module.exports = { voteQ, seedQ };
+module.exports = { voteQ, seedQ: () => {} };
