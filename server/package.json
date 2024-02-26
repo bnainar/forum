@@ -1,7 +1,6 @@
 {
   "name": "eldemo",
   "version": "1.0.0",
-  "description": "When you're ready, start your application by running: `docker compose up --build`.",
   "main": "index.js",
   "scripts": {
     "dev": "nodemon index",
@@ -11,8 +10,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@bull-board/api": "^5.14.0",
-    "@bull-board/hapi": "^5.14.0",
     "@elastic/elasticsearch": "^7.17.11",
     "bcrypt": "^5.1.1",
     "bull": "^4.12.2",

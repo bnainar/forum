@@ -58,31 +58,30 @@ const getPostById = async (req, reply) => {
     return +res[0].dataValues.replies;
   });
 
-  const votes = await utils.getFromCache("votes:" + post.id, async () => {
-    const res = await models.PostVote.findAll({
-      where: {
-        post_id: post.id,
-      },
-      attributes: [
-        [
-          models.sequelize.fn("COUNT", models.sequelize.col("user_id")),
-          "votes",
-        ],
-      ],
-    });
-    return +res[0].dataValues.votes;
-  });
   const upvoted = await models.PostVote.findOne({
     where: {
       post_id: post.id,
       user_id: req.auth.credentials.userId,
     },
   });
-
+  const cache = utils.redis();
+  const redisVoteCount = await cache.get("votes:" + req.params.id);
+  console.log({ redisVoteCount });
+  if (redisVoteCount) {
+    console.log(
+      `Updating the post ${req.params.id} with count from redis ${redisVoteCount}`
+    );
+  } else {
+    console.log({ POST: post.dataValues });
+    console.log(
+      `Putting curr vote count for post ${req.params.id} => ${post.dataValues.vote_count} in redis`
+    );
+    await cache.set("votes:" + req.params.id, post.dataValues.vote_count);
+  }
   reply({
     post,
+    votes: redisVoteCount ?? post.dataValues.vote_count,
     replies,
-    votes,
     upvoted: !!upvoted,
   });
 };

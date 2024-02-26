@@ -2,7 +2,6 @@ const models = require("../models");
 const utils = require("../utils");
 const createReply = async (req, h) => {
   try {
-    console.log({ what: req.payload });
     const res = await models.Reply.create({
       ...req.payload,
       authorId: req.auth.credentials.userId,
