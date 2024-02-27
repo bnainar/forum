@@ -46,7 +46,6 @@ module.exports = (sequelize, DataTypes) => {
       type: "_doc",
       body: { ...post.dataValues, id: undefined },
     });
-    console.log("Get Elastiked");
   });
   Post.afterDestroy("destroy in elastic", (post, _) => {
     const el = elastic();
@@ -56,7 +55,6 @@ module.exports = (sequelize, DataTypes) => {
     });
   });
   Post.afterUpdate("update @elastic", async (post, _) => {
-    return;
     const el = elastic();
     console.log("update el");
 

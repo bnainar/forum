@@ -66,15 +66,9 @@ const getPostById = async (req, reply) => {
   });
   const cache = utils.redis();
   const redisVoteCount = await cache.get("votes:" + req.params.id);
-  console.log({ redisVoteCount });
-  if (redisVoteCount) {
+  if (!redisVoteCount) {
     console.log(
-      `Updating the post ${req.params.id} with count from redis ${redisVoteCount}`
-    );
-  } else {
-    console.log({ POST: post.dataValues });
-    console.log(
-      `Putting curr vote count for post ${req.params.id} => ${post.dataValues.vote_count} in redis`
+      `set to redis votes:${req.params.id}=${post.dataValues.vote_count}`
     );
     await cache.set("votes:" + req.params.id, post.dataValues.vote_count);
   }
