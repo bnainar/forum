@@ -1,15 +1,20 @@
-const mylogger = (server, _, next) => {
-  server.ext({
-    type: "onPostAuth",
-    method: function (_, reply) {
-      console.log("onPostAuth");
-      return reply.continue();
-    },
+const dummy = (server, _, next) => {
+  console.log("inside dummy registeration")
+  server.ext("onPostAuth", (req, reply) => {
+    console.log("onPostAuth");
+    reply.continue();
   });
+  console.log("between dummy registeration")
+  server.route({
+    method: "GET",
+    path: "/nainar",
+    handler: (a, b) => b("nainar")
+  })
+  console.log("after dummy registeration")
   next();
 };
-mylogger.attributes = {
+dummy.attributes = {
   name: "dummy",
   version: "1",
 };
-module.exports = mylogger;
+module.exports = dummy;

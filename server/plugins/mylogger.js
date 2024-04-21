@@ -1,4 +1,5 @@
 const mylogger = (server, _, next) => {
+  console.log("inside mylogger install")
   server.ext({
     type: "onPreAuth",
     method: function (req, reply) {
@@ -17,6 +18,6 @@ const mylogger = (server, _, next) => {
 };
 mylogger.attributes = {
   name: "mylogger",
-  version: "1",
+  version: "2",
 };
 module.exports = mylogger;

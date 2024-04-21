@@ -25,13 +25,15 @@ const {
 
 /** Hapi instrumentation for OpenTelemetry */
 module.exports = class hepi extends InstrumentationBase {
-  count = 0;
+  
   constructor(config) {
+    
     console.log("HapiInstrumentation constructor")
     super('@nainar/instrumentation-hapi', "1", config);
   }
 
    init() {
+    this.count = 0;
     return new InstrumentationNodeModuleDefinition(
       HapiComponentName,
       ['<=16'],
@@ -98,13 +100,12 @@ module.exports = class hepi extends InstrumentationBase {
         });
         // Casting as any is necessary here due to multiple overloads on the Hapi.Server.register
         // function, which requires supporting a variety of different types of Plugin inputs
-        // console.log("wrapping register")
-
-        // self._wrap(
-        //     newServer, 
-        //     'register', 
-        //     instrumentation._getServerRegisterPatch.bind(instrumentation)
-        // );
+        console.log("wrapping register")
+        self._wrap(
+            newServer, 
+            'register', 
+            instrumentation._getServerRegisterPatch.bind(instrumentation)
+        );
         return newServer;
     };
 }
@@ -121,25 +122,26 @@ module.exports = class hepi extends InstrumentationBase {
   ) {
     const instrumentation = this;
     api.diag.debug('Patching Hapi.Server register function');
-    console.log('_getServerRegisterPatch', ++this.count);
-    return function register(
-      pluginInput,
-      options
-    ) {
+    console.log('_getServerRegisterPatch', original);
+    return function register(pluginInput, options) {
       console.log("pluginInput", pluginInput)
-      if (Array.isArray(pluginInput)) {
-        for (const pluginObj of pluginInput) {
+      // console.log("pluginInput", pluginInput, options, instrumentation.count++)
+      // console.log("pluginInput", args, instrumentation.count++)
+
+      // if(instrumentation.count === 3) process.exit(1)
+      // if (Array.isArray(pluginInput)) {
+      //   for (const pluginObj of pluginInput) {
           // instrumentation._wrapRegisterHandler(
           //   pluginObj.plugin?.plugin ?? pluginObj.plugin ?? pluginObj
           // );
-        }
-      } else {
+      //   }
+      // } else {
         // process.exit(1)
-        // console.log("calling instrumentation._wrapRegisterHandler")
-        // instrumentation._wrapRegisterHandler(
-        //   pluginInput.register
-        // );
-      }
+        console.log("calling instrumentation._wrapRegisterHandler from _getServerRegisterPatch.register")
+        instrumentation._wrapRegisterHandler(
+          pluginInput
+        );
+      // }
       return original.apply(this, [pluginInput, options]);
     };
   }
@@ -247,15 +249,19 @@ module.exports = class hepi extends InstrumentationBase {
    * Wraps newly registered plugins to add instrumentation to the plugin's clone of
    * the original server. Specifically, wraps the server.route and server.ext functions
    * via calls to @function _getServerRoutePatch and @function _getServerExtPatch
-   * @param {Hapi.Plugin<T>} plugin - the new plugin which is being instrumented
+   * @param register - the new plugin which is being instrumented
    */
    _wrapRegisterHandler(plugin) {
-    console.log("_wrapRegisterHandler", plugin)
+    const register = plugin.register
+    console.log("_wrapRegisterHandler before", register)
+    // if (plugin[handlerPatched] === true) return plugin;
+    //   plugin[handlerPatched] = true;
     const instrumentation = this;
-    const pluginName = getPluginName(plugin);
-    const oldHandler = plugin.register;
+    const pluginName = getPluginName(register);
+    const oldHandler = register;
     const self = this;
-    const newRegisterHandler = function (server, options) {
+    const attributes = register.attributes
+    const newRegisterHandler = function (server, options, next) {
       server.route;
       console.log("_wrapRegisterHandler > before route patch")
       self._wrap(server, 'route', original => {
@@ -276,10 +282,11 @@ module.exports = class hepi extends InstrumentationBase {
           pluginName
         );
       });
-      return oldHandler(server, options);
+      return oldHandler(server, options, next);
     };
     plugin.register = newRegisterHandler;
-
+    plugin.register.attributes = attributes;
+    console.log("_wrapRegisterHandler after", register)
   }
 
   /**
@@ -298,6 +305,7 @@ module.exports = class hepi extends InstrumentationBase {
     extPoint,
     pluginName
   ){
+    console.log("_wrapExtMethods", method, extPoint, pluginName)
     const instrumentation = this;
 
     if (method instanceof Array) {
@@ -356,7 +364,7 @@ module.exports = class hepi extends InstrumentationBase {
     route,
     pluginName
    ) {
-    console.log("_wrapRouteHandler", route, pluginName)
+    console.log("_wrapRouteHandler before", route, pluginName)
     const instrumentation = this;
     if (route[handlerPatched] === true) return route;
     route[handlerPatched] = true;

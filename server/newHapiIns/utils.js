@@ -10,19 +10,13 @@ const AttributeNames = {
   EXT_TYPE: "server.ext.type",
 };
 
-function getPluginName(plugin) {
-  const x = plugin.register?.attributes?.name
-  console.log("getPluginName", plugin.register)
+function getPluginName(register) {
+  const x = register.attributes.name
   if(!x){
-    // process.exit(1)
-
+    process.exit(1)
   }
-  console.log(x)
-  // if ((plugin).name) {
-  //   return (plugin).name;
-  // } else {
-  //   return (plugin).attributes.name;
-  // }
+  console.log({x})
+  return x;
 }
 
 const isLifecycleExtType = (
