@@ -1,6 +1,5 @@
 const Joi = require("joi");
 const controllers = require("../controllers");
-const api = require('@opentelemetry/api');
 const authRoute = [
   {
     path: "/api/auth/me",

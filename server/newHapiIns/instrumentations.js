@@ -25,16 +25,16 @@ const {
 
 /** Hapi instrumentation for OpenTelemetry */
 module.exports = class hepi extends InstrumentationBase {
-  co = 0;
+  count = 0;
   constructor(config) {
-    console.log("nainar super")
+    console.log("HapiInstrumentation constructor")
     super('@nainar/instrumentation-hapi', "1", config);
   }
 
    init() {
     return new InstrumentationNodeModuleDefinition(
       HapiComponentName,
-      ['<=21'],
+      ['<=16'],
       moduleExports => {
         if (!isWrapped(moduleExports.server)) {
           api.diag.debug('Patching Hapi.server');
@@ -121,18 +121,18 @@ module.exports = class hepi extends InstrumentationBase {
   ) {
     const instrumentation = this;
     api.diag.debug('Patching Hapi.Server register function');
-    console.log('_getServerRegisterPatch');
+    console.log('_getServerRegisterPatch', ++this.count);
     return function register(
       pluginInput,
       options
     ) {
       console.log("pluginInput", pluginInput)
       if (Array.isArray(pluginInput)) {
-        // for (const pluginObj of pluginInput) {
-        //   instrumentation._wrapRegisterHandler(
-        //     pluginObj.plugin?.plugin ?? pluginObj.plugin ?? pluginObj
-        //   );
-        // }
+        for (const pluginObj of pluginInput) {
+          // instrumentation._wrapRegisterHandler(
+          //   pluginObj.plugin?.plugin ?? pluginObj.plugin ?? pluginObj
+          // );
+        }
       } else {
         // process.exit(1)
         // console.log("calling instrumentation._wrapRegisterHandler")
@@ -363,6 +363,7 @@ module.exports = class hepi extends InstrumentationBase {
     const oldHandler = route.config?.handler ?? route.handler;
     
     if (typeof oldHandler === 'function') {
+      console.log("legit handler")
       const newHandler = async function (
         ...params
       ) {

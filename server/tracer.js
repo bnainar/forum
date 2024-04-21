@@ -1,35 +1,49 @@
-'use strict';
+"use strict";
 
-const api = require('@opentelemetry/api');
-const { NodeTracerProvider } = require('@opentelemetry/sdk-trace-node');
-const { SimpleSpanProcessor } = require('@opentelemetry/sdk-trace-base');
-const { JaegerExporter } = require('@opentelemetry/exporter-jaeger');
-// const {
-//   getNodeAutoInstrumentations,
-// } = require('@opentelemetry/auto-instrumentations-node');
-const hepi = require("./newHapiIns/instrumentations")
-const { HttpInstrumentation } = require('@opentelemetry/instrumentation-http');
-const { registerInstrumentations } = require('@opentelemetry/instrumentation');
+const api = require("@opentelemetry/api");
+const { NodeSDK } = require("@opentelemetry/sdk-node");
+const {
+  PeriodicExportingMetricReader,
+  ConsoleMetricExporter,
+} = require("@opentelemetry/sdk-metrics");
+const {
+  OTLPTraceExporter,
+} = require("@opentelemetry/exporter-trace-otlp-proto");
+const { Resource } = require("@opentelemetry/resources");
+const {
+  SEMRESATTRS_SERVICE_NAME,
+} = require("@opentelemetry/semantic-conventions");
+const { PgInstrumentation } = require("@opentelemetry/instrumentation-pg");
+const hepi = require("./newHapiIns/instrumentations");
+const {
+  IORedisInstrumentation,
+} = require("@opentelemetry/instrumentation-ioredis");
+const { HttpInstrumentation } = require("@opentelemetry/instrumentation-http");
 
 module.exports = (serviceName) => {
-  const provider = new NodeTracerProvider();
+  const instrumentations = [
+    new hepi(),
+    new HttpInstrumentation(),
+    new IORedisInstrumentation(),
+    new PgInstrumentation(),
+  ];
 
-  let exporter;
-  
-  exporter = new JaegerExporter({ serviceName });
-  
-  provider.addSpanProcessor(new SimpleSpanProcessor(exporter));
-
-  // Initialize the OpenTelemetry APIs to use the NodeTracerProvider bindings
-  provider.register();
-
-  registerInstrumentations({
-    instrumentations: [
-      new hepi(),
-      new HttpInstrumentation(),
-    ],
+  const sdk = new NodeSDK({
+    traceExporter: new OTLPTraceExporter({
+      // optional - default url is http://localhost:4318/v1/traces
+      // url,
+      // optional - collection of custom headers to be sent with each request, empty by default
+      // headers: {},
+    }),
+    instrumentations,
+    metricReader: new PeriodicExportingMetricReader({
+      exporter: new ConsoleMetricExporter(),
+    }),
+    resource: new Resource({
+      [SEMRESATTRS_SERVICE_NAME]: "forum-app",
+    }),
   });
-  console.log("after registerInstrumentations")
 
-  return api.trace.getTracer('forum-app');
+  sdk.start();
+  return api.trace.getTracer("forum-app");
 };
