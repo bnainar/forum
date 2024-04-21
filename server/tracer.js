@@ -13,37 +13,64 @@ const { Resource } = require("@opentelemetry/resources");
 const {
   SEMRESATTRS_SERVICE_NAME,
 } = require("@opentelemetry/semantic-conventions");
+const logsAPI = require("@opentelemetry/api-logs");
+const {
+  LoggerProvider,
+  SimpleLogRecordProcessor,
+  ConsoleLogRecordExporter,
+} = require("@opentelemetry/sdk-logs");
+const {
+  WinstonInstrumentation,
+} = require("@opentelemetry/instrumentation-winston");
 const { PgInstrumentation } = require("@opentelemetry/instrumentation-pg");
 const hepi = require("./newHapiIns/instrumentations");
 const {
   IORedisInstrumentation,
 } = require("@opentelemetry/instrumentation-ioredis");
 const { HttpInstrumentation } = require("@opentelemetry/instrumentation-http");
+const process = require("process");
 
-module.exports = (serviceName) => {
-  const instrumentations = [
-    new hepi(),
-    new HttpInstrumentation(),
-    new IORedisInstrumentation(),
-    new PgInstrumentation(),
-  ];
+// To start a logger, you first need to initialize the Logger provider.
+const loggerProvider = new LoggerProvider();
+// Add a processor to export log record
+loggerProvider.addLogRecordProcessor(
+  new SimpleLogRecordProcessor(new ConsoleLogRecordExporter())
+);
+logsAPI.logs.setGlobalLoggerProvider(loggerProvider);
 
-  const sdk = new NodeSDK({
-    traceExporter: new OTLPTraceExporter({
-      // optional - default url is http://localhost:4318/v1/traces
-      // url,
-      // optional - collection of custom headers to be sent with each request, empty by default
-      // headers: {},
-    }),
-    instrumentations,
-    metricReader: new PeriodicExportingMetricReader({
-      exporter: new ConsoleMetricExporter(),
-    }),
-    resource: new Resource({
-      [SEMRESATTRS_SERVICE_NAME]: "forum-app",
-    }),
-  });
+const instrumentations = [
+  new hepi(),
+  new HttpInstrumentation(),
+  new IORedisInstrumentation(),
+  new PgInstrumentation(),
+  new WinstonInstrumentation(),
+];
 
-  sdk.start();
+const sdk = new NodeSDK({
+  traceExporter: new OTLPTraceExporter(),
+  instrumentations,
+  metricReader: new PeriodicExportingMetricReader({
+    exporter: new ConsoleMetricExporter(),
+  }),
+  resource: new Resource({
+    [SEMRESATTRS_SERVICE_NAME]: "forum-app",
+  }),
+});
+
+sdk.start();
+
+const shutdown = () => {
+  sdk
+    .shutdown()
+    .then(
+      () => console.log("SDK shut down successfully"),
+      (err) => console.log("Error shutting down SDK", err)
+    )
+    .finally(() => process.exit(0));
+};
+process.on("SIGTERM", shutdown);
+process.on("SIGINT", shutdown);
+
+module.exports = (_) => {
   return api.trace.getTracer("forum-app");
 };

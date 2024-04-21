@@ -2,10 +2,15 @@ const bcrypt = require("bcrypt");
 const models = require("../models");
 const utils = require("../utils");
 const uuid = require("uuid").v4;
-
+const logger = require("../logger")
+const helper = () => {
+  logger.warn("have no idea who's the caller, but will get the traceId and spanId")
+}
 const login = async (req, reply) => {
   try {
     const { username, password } = req.payload;
+    logger.info("tryna login")
+    helper()
     const user = await models.User.findOne({ where: { username } });
     if (!user) {
       return reply().code(400);

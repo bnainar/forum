@@ -20,11 +20,14 @@
     "@opentelemetry/core": "^1.23.0",
     "@opentelemetry/exporter-jaeger": "^1.23.0",
     "@opentelemetry/instrumentation": "^0.50.0",
+    "@opentelemetry/instrumentation-winston": "^0.36.0",
     "@opentelemetry/resources": "^1.23.0",
+    "@opentelemetry/sdk-logs": "^0.50.0",
     "@opentelemetry/sdk-metrics": "^1.23.0",
     "@opentelemetry/sdk-node": "^0.50.0",
     "@opentelemetry/sdk-trace-node": "^1.23.0",
     "@opentelemetry/semantic-conventions": "^1.23.0",
+    "@opentelemetry/winston-transport": "^0.2.0",
     "@types/bull": "^4.10.0",
     "axios": "^1.6.8",
     "bcrypt": "^5.1.1",
@@ -40,6 +43,7 @@
     "redis": "^4.6.12",
     "require-directory": "^2.1.1",
     "sequelize": "^5.21.3",
-    "uuid": "^9.0.1"
+    "uuid": "^9.0.1",
+    "winston": "^3.13.0"
   }
 }
