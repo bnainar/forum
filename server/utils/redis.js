@@ -17,7 +17,7 @@ const Redis = require("ioredis");
 let client;
 module.exports = () => {
   if (!client) {
-    client = new Redis(6379, "cache");
+    client = new Redis(6379, "localhost");
   }
   return client;
 };

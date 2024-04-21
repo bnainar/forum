@@ -18,6 +18,16 @@ import { SearchPage } from "./components/SearchPage.tsx";
 const darkTheme = createTheme({
   palette: {
     mode: "dark",
+    primary: {
+      main: "#D0BCFF",
+    },
+    secondary: {
+      main: "#CCC2DC",
+    },
+    background: {
+      paper: "#141218",
+      default: "#141218",
+    },
   },
 });
 axios.defaults.baseURL = "https://localhost/api";

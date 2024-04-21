@@ -1,4 +1,4 @@
-FROM node
+FROM node:20
 # Use production node environment by default.
 # ENV NODE_ENV production
 USER root

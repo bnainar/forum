@@ -1,5 +1,6 @@
 const Joi = require("joi");
 const controllers = require("../controllers");
+const api = require('@opentelemetry/api');
 const authRoute = [
   {
     path: "/api/auth/me",
@@ -47,6 +48,36 @@ const authRoute = [
     method: "GET",
     config: {
       handler: controllers.auth.logout,
+    },
+  },
+  {
+    path: "/hello",
+    method: "GET",
+    config: {
+      handler: (request, reply) => {
+        console.log("GET/hello");
+        reply("get");
+      },
+    },
+  },
+  {
+    path: "/hello",
+    method: "POST",
+    config: {
+      handler: (request, reply) => {
+        console.log("POST/hello");
+        return reply("post");
+      },
+    },
+  },
+  {
+    path: "/hello",
+    method: "PUT",
+    config: {
+      handler: (request, reply) => {
+        console.log("PUT/hello");
+        return reply("put");
+      },
     },
   },
 ];

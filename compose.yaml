@@ -1,59 +1,61 @@
 services:
-  portainer:
-    image: portainer/portainer-ce
-    ports:
-      - 9443:9443
-    volumes:
-      - portainer-vol:/data
-      - /var/run/docker.sock:/var/run/docker.sock
-    restart: unless-stopped
+  # portainer:
+  #   image: portainer/portainer-ce
+  #   ports:
+  #     - 9443:9443
+  #   volumes:
+  #     - portainer-vol:/data
+  #     - /var/run/docker.sock:/var/run/docker.sock
+  #   restart: unless-stopped
 
-  caddy:
-    image: caddy
-    ports:
-      - 80:80
-      - 443:443
-    volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile:ro
-    restart: always
-    depends_on:
-      - nodejs_server
-      - react_frontend
+  # jaeger:
+  #   image: jaegertracing/all-in-one
+  #   ports:
+  #     - "16686:16686"
+  #     - "4318:4318"
+  #   environment:
+  #     - LOG_LEVEL=debug
+    
+  # caddy:
+  #   image: caddy
+  #   ports:
+  #     - 80:80
+  #     - 443:443
+  #   volumes:
+  #     - ./Caddyfile:/etc/caddy/Caddyfile:ro
+  #   restart: always
+  #   depends_on:
+  #     - nodejs_server
+  #     - react_frontend
 
-  react_frontend:
-    build:
-      context: ./client
-    ports:
-      - 5173:5173
-    volumes:
-      - ./client/src:/usr/src/app/src
-      - /usr/src/app/node_modules
-    depends_on:
-      - nodejs_server
+  # react_frontend:
+  #   build:
+  #     context: ./client
+  #   ports:
+  #     - 5173:5173
+  #   volumes:
+  #     - ./client/src:/usr/src/app/src
+  #     - /usr/src/app/node_modules
+  #   depends_on:
+  #     - nodejs_server
 
-  nodejs_server:
-    build:
-      context: ./server
-    ports:
-      - 3000:3000
-    volumes:
-      - ./server:/usr/src/app
-      - /usr/src/app/node_modules
-    depends_on:
-      db:
-        condition: service_started
-      migration:
-        condition: service_started
-      cache:
-        condition: service_healthy
-      elasticsearch:
-        condition: service_healthy
-
-  migration:
-    build: ./server
-    command: npx sequelize-cli db:migrate
-    depends_on:
-      - db
+  # nodejs_server:
+  #   build:
+  #     context: ./server
+  #   ports:
+  #     - 3000:3000
+  #   volumes:
+  #     - ./server:/usr/src/app
+  #     - /usr/src/app/node_modules
+  #   depends_on:
+  #     db:
+  #       condition: service_started
+  #     migration:
+  #       condition: service_started
+  #     cache:
+  #       condition: service_healthy
+  #     elasticsearch1:
+  #       condition: service_healthy
 
   cache:
     image: redis
@@ -78,7 +80,7 @@ services:
     volumes:
       - /var/lib/postgresql/data
 
-  elasticsearch:
+  elasticsearch1:
     attach: false
     image: docker.elastic.co/elasticsearch/elasticsearch:6.7.2
     container_name: elasticsearch
@@ -99,7 +101,7 @@ services:
       test:
         [
           "CMD-SHELL",
-          "curl elasticsearch:9200/_cluster/health || exit 1"
+          "curl elasticsearch1:9200/_cluster/health || exit 1"
         ]
       interval: 30s
       timeout: 10s
@@ -112,7 +114,7 @@ services:
     ports:
       - 5601:5601
     depends_on:
-      elasticsearch:
+      elasticsearch1:
         condition: service_healthy
     logging:
       driver: none

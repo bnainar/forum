@@ -3,7 +3,7 @@ let client;
 
 module.exports = () => {
   if (!client) {
-    client = new elastic.Client({ node: "http://elasticsearch:9200" });
+    client = new elastic.Client({ node: "http://localhost:9200" });
   }
   return client;
 };

@@ -14,26 +14,25 @@ const createPost = async (req, h) => {
 };
 
 const deletePost = async (req, reply) => {
-  const post = await models.Post.findByPk(req.params.id);
-  if (!post) {
-    return reply().code(404);
-  }
-  if (post.authorId != req.auth.credentials.userId) return reply().code(403);
-  await post.destroy();
-  reply(post);
+  const res = await models.Post.destroy({
+    where: { id: req.params.id, authorId: req.auth.credentials.userId },
+  });
+  if (res) reply();
+  else reply().code(404);
 };
 
 const editPost = async (req, reply) => {
-  const post = await models.Post.findByPk(req.params.id);
-  if (!post) {
-    return reply().code(404);
-  }
-  console.log(post.authorId, req.auth.credentials.userId);
-  if (post.authorId != req.auth.credentials.userId) return reply().code(403);
-  post.title = req.payload.title;
-  post.content = req.payload.content;
-  await post.save();
-  reply(post);
+  const res = await models.Post.update(
+    { ...req.payload },
+    {
+      where: {
+        id: req.params.id,
+        authorId: req.auth.credentials.userId,
+      },
+    }
+  );
+  if (res[0]) reply();
+  else reply().code(404);
 };
 
 const getPostById = async (req, reply) => {
@@ -41,21 +40,19 @@ const getPostById = async (req, reply) => {
     include: {
       model: models.User,
       as: "author",
+      attributes: ["username"],
     },
   });
   if (!post) {
     return reply().code(404);
   }
   const replies = await utils.getFromCache("replies:" + post.id, async () => {
-    const res = await models.Reply.findAll({
+    const res = await models.Reply.count({
       where: {
         parentId: post.id,
       },
-      attributes: [
-        [models.sequelize.fn("COUNT", models.sequelize.col("id")), "replies"],
-      ],
     });
-    return +res[0].dataValues.replies;
+    return +res;
   });
 
   const upvoted = await models.PostVote.findOne({

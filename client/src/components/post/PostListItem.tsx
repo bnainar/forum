@@ -33,6 +33,7 @@ export function PostListItem({ postId }: { postId: number }) {
             textDecoration: "none",
             marginTop: "1rem",
             paddingBottom: 1,
+            backgroundColor: "#26272a",
           }}
         >
           <CardContent style={{ paddingLeft: 2 }}>
