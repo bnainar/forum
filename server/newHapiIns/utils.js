@@ -10,8 +10,9 @@ const AttributeNames = {
   EXT_TYPE: "server.ext.type",
 };
 
-function getPluginName(register) {
-  return register.attributes.name
+function getPluginName(x) {
+  const name = x?.register?.attributes?.name ?? x?.register?.attributes?.pkg?.name
+  return name;
 }
 
 const isLifecycleExtType = (
