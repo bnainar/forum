@@ -66,7 +66,7 @@ server.register(
     server.route({ method: "GET", path: "/status", handler: status });
 
     server.route({ method: "GET", path: "/user", config: user });
-    // server.route(routes)
+    server.route(routes)
     server.auth.scheme("cookie-scheme", () => ({
       authenticate: utils.cookieAuthScheme,
     }));
@@ -79,8 +79,7 @@ server.register(
       }
     }
 
-    // console.log(flatRoutes.length);
-    server.route(routes);
+    server.route(flatRoutes);
 
     server.ext("onRequest", (req, reply) => {
       console.log("onReq");

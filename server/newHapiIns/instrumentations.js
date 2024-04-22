@@ -79,6 +79,7 @@ module.exports = class hepi extends InstrumentationBase {
     const instrumentation = this;
     const self = this;
     return function server(opts) {
+        // hapi 16 breaks without the below function
         function WrappedServer(opts) {
           return new original(opts); // Instantiate the original Hapi.Server
         }
@@ -122,26 +123,19 @@ module.exports = class hepi extends InstrumentationBase {
   ) {
     const instrumentation = this;
     api.diag.debug('Patching Hapi.Server register function');
-    console.log('_getServerRegisterPatch', original);
-    return function register(pluginInput, options) {
-      console.log("pluginInput", pluginInput)
-      // console.log("pluginInput", pluginInput, options, instrumentation.count++)
-      // console.log("pluginInput", args, instrumentation.count++)
-
-      // if(instrumentation.count === 3) process.exit(1)
-      // if (Array.isArray(pluginInput)) {
-      //   for (const pluginObj of pluginInput) {
-          // instrumentation._wrapRegisterHandler(
-          //   pluginObj.plugin?.plugin ?? pluginObj.plugin ?? pluginObj
-          // );
-      //   }
-      // } else {
-        // process.exit(1)
-        console.log("calling instrumentation._wrapRegisterHandler from _getServerRegisterPatch.register")
-        instrumentation._wrapRegisterHandler(
-          pluginInput
-        );
-      // }
+    console.log('_getServerRegisterPatch');
+    return function register(pluginInput, options, callback) {
+      if(!callback) {
+        console.log(pluginInput, "has no callback. A new one will be added by Hapi, but may cause infinite loop")
+      }
+      console.log("pluginInput", pluginInput, options, callback)
+      if (Array.isArray(pluginInput)) {
+        for (const pluginObj of pluginInput) {
+          instrumentation._wrapRegisterHandler(pluginObj);
+        }
+      } else {
+        instrumentation._wrapRegisterHandler(pluginInput);
+      }
       return original.apply(this, [pluginInput, options]);
     };
   }
@@ -162,7 +156,7 @@ module.exports = class hepi extends InstrumentationBase {
   ) {
     const instrumentation = this;
     api.diag.debug('Patching Hapi.Server ext function');
-    console.log("_getServerExtPatch")
+    console.log("_getServerExtPatch", pluginName)
     return function ext(
       ...args
     ) {
@@ -221,7 +215,7 @@ module.exports = class hepi extends InstrumentationBase {
   ) {
     const instrumentation = this;
     api.diag.debug('Patching Hapi.Server route function');
-    console.log('_getServerRoutePatch', original, pluginName);
+    console.log('_getServerRoutePatch', pluginName);
     return function route(
       route
     ) {
@@ -253,9 +247,7 @@ module.exports = class hepi extends InstrumentationBase {
    */
    _wrapRegisterHandler(plugin) {
     const register = plugin.register
-    console.log("_wrapRegisterHandler before", register)
-    // if (plugin[handlerPatched] === true) return plugin;
-    //   plugin[handlerPatched] = true;
+    console.log("_wrapRegisterHandler", register)
     const instrumentation = this;
     const pluginName = getPluginName(register);
     const oldHandler = register;
@@ -263,9 +255,7 @@ module.exports = class hepi extends InstrumentationBase {
     const attributes = register.attributes
     const newRegisterHandler = function (server, options, next) {
       server.route;
-      console.log("_wrapRegisterHandler > before route patch")
       self._wrap(server, 'route', original => {
-        console.log("_wrapRegisterHandler > patch")
         return instrumentation._getServerRoutePatch.bind(instrumentation)(
           original,
           pluginName
@@ -286,7 +276,6 @@ module.exports = class hepi extends InstrumentationBase {
     };
     plugin.register = newRegisterHandler;
     plugin.register.attributes = attributes;
-    console.log("_wrapRegisterHandler after", register)
   }
 
   /**
@@ -364,14 +353,13 @@ module.exports = class hepi extends InstrumentationBase {
     route,
     pluginName
    ) {
-    console.log("_wrapRouteHandler before", route, pluginName)
     const instrumentation = this;
     if (route[handlerPatched] === true) return route;
     route[handlerPatched] = true;
     const oldHandler = route.config?.handler ?? route.handler;
     
+    console.log("_wrapRouteHandler", route, pluginName)
     if (typeof oldHandler === 'function') {
-      console.log("legit handler")
       const newHandler = async function (
         ...params
       ) {
@@ -386,7 +374,7 @@ module.exports = class hepi extends InstrumentationBase {
         const span = instrumentation.tracer.startSpan(metadata.name, {
           attributes: metadata.attributes,
         });
-        console.log("span", span)
+        console.log(span)
         try {
           return await api.context.with(
             api.trace.setSpan(api.context.active(), span),
@@ -408,6 +396,9 @@ module.exports = class hepi extends InstrumentationBase {
       } else {
         route.handler = newHandler;
       }
+    }
+    else {
+      throw new Error(route + " is not a valid route")
     }
     return route;
   }

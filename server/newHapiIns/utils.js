@@ -11,12 +11,7 @@ const AttributeNames = {
 };
 
 function getPluginName(register) {
-  const x = register.attributes.name
-  if(!x){
-    process.exit(1)
-  }
-  console.log({x})
-  return x;
+  return register.attributes.name
 }
 
 const isLifecycleExtType = (
