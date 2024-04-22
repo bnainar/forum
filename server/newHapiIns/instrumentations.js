@@ -21,6 +21,7 @@ const {
   getExtMetadata,
   isDirectExtInput,
   isPatchableExtMethod,
+  AttributeNames,
 } = require( './utils');
 
 /** Hapi instrumentation for OpenTelemetry */
@@ -357,7 +358,8 @@ module.exports = class hepi extends InstrumentationBase {
     if (route[handlerPatched] === true) return route;
     route[handlerPatched] = true;
     const oldHandler = route.config?.handler ?? route.handler;
-    
+    // Not enough info to disply from preHandlers
+    // if(route?.config?.pre) instrumentation._patchPre(route.config.pre, route)
     console.log("_wrapRouteHandler", route, pluginName)
     if (typeof oldHandler === 'function') {
       const newHandler = async function (
@@ -401,5 +403,62 @@ module.exports = class hepi extends InstrumentationBase {
       throw new Error(route + " is not a valid route")
     }
     return route;
+  }
+  _patchPre(preArr, route) {
+    const instrumentation = this;
+    console.log("_patchPre", preArr);
+    if(Array.isArray(preArr)) {
+      preArr.forEach(preInput => {
+        if(Array.isArray(preInput)) {
+          instrumentation._patchPre(preInput, route)
+        }
+        else {
+          instrumentation._wrapPre(preInput, route)
+        }
+      });
+    }
+    else {
+      throw new Error("pre must be an array")
+    }
+  }
+  _wrapPre(preObj, route) {
+    const instrumentation = this;
+    const oldMethod = preObj.method
+    console.log({preObj})
+    const newMethod = async function (
+      ...params
+    ) {
+      if (api.trace.getSpan(api.context.active()) === undefined) {
+        return await oldHandler(...params);
+      }
+      const rpcMetadata = getRPCMetadata(api.context.active());
+      if (rpcMetadata?.type === RPCType.HTTP) {
+        rpcMetadata.route = route.path;
+      }
+
+        const metadata = getRouteMetadata(route);
+        metadata.attributes[AttributeNames.HAPI_TYPE] = "pre"
+        const span = instrumentation.tracer.startSpan("pre of " + metadata.name, {
+          attributes: metadata.attributes,
+        });
+      console.log(span)
+      try {
+        return await api.context.with(
+          api.trace.setSpan(api.context.active(), span),
+          () => oldMethod(...params)
+        );
+      } catch (err) {
+        span.recordException(err);
+        span.setStatus({
+          code: api.SpanStatusCode.ERROR,
+          message: err.message,
+        });
+        throw err;
+      } finally {
+        span.end();
+      }
+    };
+
+    preObj.method = newMethod;
   }
 }

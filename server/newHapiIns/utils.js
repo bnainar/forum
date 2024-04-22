@@ -102,5 +102,6 @@ module.exports = {
     isDirectExtInput,
     isPatchableExtMethod,
     getRouteMetadata,
-    getExtMetadata
+    getExtMetadata,
+    AttributeNames
 }
