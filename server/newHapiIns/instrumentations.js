@@ -247,10 +247,11 @@ module.exports = class hepi extends InstrumentationBase {
    * @param register - the new plugin which is being instrumented
    */
    _wrapRegisterHandler(plugin) {
-    const register = plugin.register
-    console.log("_wrapRegisterHandler", register)
+    if(!plugin.register.register?.attributes) return;
+    const register = plugin.register.register
+    console.log("_wrapRegisterHandler", plugin)
     const instrumentation = this;
-    const pluginName = getPluginName(register);
+    const pluginName = getPluginName(plugin.register);
     const oldHandler = register;
     const self = this;
     const attributes = register.attributes
@@ -275,8 +276,8 @@ module.exports = class hepi extends InstrumentationBase {
       });
       return oldHandler(server, options, next);
     };
-    plugin.register = newRegisterHandler;
-    plugin.register.attributes = attributes;
+    plugin.register.register = newRegisterHandler;
+    plugin.register.register.attributes = attributes;
   }
 
   /**
